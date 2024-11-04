@@ -8,13 +8,13 @@ import java.util.ArrayList;
  * for Adventures in Algorithms
  * At Menlo School in Atherton, CA
  *
- * Completed by: [YOUR NAME HERE]
+ * Completed by: Alexandre Haddad-Delaveau
  **/
 
 public class Finder {
 
     private static final String INVALID = "INVALID KEY";
-    private ArrayList<Pair>[] hashMap = new ArrayList[999983];
+    private ArrayList<Pair>[] hashMap = new ArrayList[9999991]; // Largest 7-digit prime number, I found that this was faster than the largest 6/8 digit prime number
 
     public Finder() {}
 
