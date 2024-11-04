@@ -12,13 +12,16 @@ import java.util.ArrayList;
  **/
 
 public class Finder {
+    int currentSize = 2;
+    int slotsUsed = 0;
 
     private static final String INVALID = "INVALID KEY";
-    private final Bucket[] hashMap = new Bucket[9999991]; // Largest 7-digit prime number, I found that this was faster than the largest 6/8 digit prime number
+    private String[] hashMap = new String[currentSize];
 
     public Finder() {}
 
     public void buildTable(BufferedReader br, int keyCol, int valCol) throws IOException {
+
         // Read the file, line by line
         String line;
         while ((line = br.readLine()) != null) {
@@ -32,20 +35,28 @@ public class Finder {
             // Calculate the hash of the key
             int hash = calculateHash(key);
 
-            // Create a pair object from the key and value
-            Pair pair = new Pair(key, value);
+            // Add value to hashMap
+            boolean foundLocation = false;
+            while (!foundLocation) {
+                if (hashMap[hash] == null) {
+                    hashMap[hash] = value;
+                    foundLocation = true;
+                    slotsUsed++;
+                } else {
+                    // Increment hash
+                    hash++;
 
-            // Get the bucket for the hash
-            Bucket bucket = hashMap[hash];
-
-            // If the bucket is null, create a new bucket
-            if (bucket == null) {
-                bucket = new Bucket();
-                hashMap[hash] = bucket;
+                    // Make sure hash is not greater than length of hashMap
+                    if (hash >= currentSize) {
+                        hash = 0;
+                    }
+                }
             }
 
-            // Add the pair to the bucket
-            bucket.add(pair);
+            // Check usage
+            if ((double) slotsUsed / currentSize >= 0.50) {
+                rebuildTable();
+            }
         }
         br.close();
     }
@@ -53,65 +64,68 @@ public class Finder {
     public String query(String key){
         // Calculate the hash of the key
         int hash = calculateHash(key);
+        int initialHash = hash;
 
-        // Get the bucket for the hash
-        Bucket bucket = hashMap[hash];
-
-        // Verify bucket is not null
-        if (bucket == null) {
-            return INVALID;
-        }
-
-        // If there is only one pair in the bucket, return the value
-        return bucket.get(key);
-    }
-
-    private int calculateHash(String input) {
-        long hashCode = 0;
-        int modulus = hashMap.length;
-        byte[] bytes = input.getBytes();
-
-        // Loop over bytes
-        for (byte b : bytes) {
-            hashCode = (hashCode * 256) % modulus;
-            hashCode = (hashCode + b) % modulus;
-        }
-
-        return (int) hashCode;
-    }
-
-    private static class Bucket {
-        public ArrayList<Pair> pairs;
-
-        public Bucket() {
-            pairs = new ArrayList<>();
-        }
-
-        public void add(Pair pair) {
-            pairs.add(pair);
-        }
-
-        public String get(String key) {
-            if (pairs.size() == 1) {
-                return pairs.getFirst().value;
-            } else {
-                for (Pair pair : pairs) {
-                    if (pair.key.equals(key)) {
-                        return pair.value;
-                    }
-                }
+        while (true) {
+            if (hashMap[hash] == null) {
                 return INVALID;
+            } else if (hashMap[hash].equals(key)) {
+                return hashMap[hash];
+            } else {
+                // Increment hash
+                hash++;
+
+                // Make sure hash is not greater than length of hashMap
+                if (hash >= currentSize) {
+                    currentSize = 0;
+                }
             }
         }
     }
 
-    private static class Pair {
-        public String key;
-        public String value;
+    private void rebuildTable() {
+        currentSize = currentSize << 1;
+        String[] newHashMap = new String[currentSize];
 
-        public Pair(String key, String value) {
-            this.key = key;
-            this.value = value;
+        // Loop over existing elements
+        for (int i = 0; i < hashMap.length; i++) {
+            if (hashMap[i] != null) {
+                int hash = calculateHash(hashMap[i]);
+
+                // Add to map
+                boolean foundLocation = false;
+                while (!foundLocation) {
+                    if (newHashMap[hash] == null) {
+                        newHashMap[hash] = hashMap[i];
+                        foundLocation = true;
+                    } else {
+                        // Increment hash
+                        hash++;
+
+                        // Make sure hash is not greater than length of hashMap
+                        if (hash >= currentSize) {
+                            hash = 0;
+                        }
+                    }
+                }
+            }
         }
+
+        // Apply new HashMap
+        hashMap = newHashMap;
+
+
+    }
+
+    private int calculateHash(String input) {
+        long hashCode = 0;
+        byte[] bytes = input.getBytes();
+
+        // Loop over bytes
+        for (byte b : bytes) {
+            hashCode = (hashCode * 128 + b) % (currentSize - 1);
+        }
+
+        return (int) hashCode;
     }
 }
