@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Finder {
 
     private static final String INVALID = "INVALID KEY";
-    private ArrayList<Pair>[] hashMap = new ArrayList[9999991]; // Largest 7-digit prime number, I found that this was faster than the largest 6/8 digit prime number
+    private final Bucket[] hashMap = new Bucket[9999991]; // Largest 7-digit prime number, I found that this was faster than the largest 6/8 digit prime number
 
     public Finder() {}
 
@@ -36,11 +36,11 @@ public class Finder {
             Pair pair = new Pair(key, value);
 
             // Get the bucket for the hash
-            ArrayList<Pair> bucket = hashMap[hash];
+            Bucket bucket = hashMap[hash];
 
             // If the bucket is null, create a new bucket
             if (bucket == null) {
-                bucket = new ArrayList<Pair>();
+                bucket = new Bucket();
                 hashMap[hash] = bucket;
             }
 
@@ -55,27 +55,15 @@ public class Finder {
         int hash = calculateHash(key);
 
         // Get the bucket for the hash
-        ArrayList<Pair> bucket = hashMap[hash];
+        Bucket bucket = hashMap[hash];
 
-        // If the bucket is null, return INVALID
+        // Verify bucket is not null
         if (bucket == null) {
             return INVALID;
         }
 
         // If there is only one pair in the bucket, return the value
-        if (bucket.size() == 1) {
-            return (String) bucket.getFirst().value;
-        }
-
-        // Otherwise, find the pair with the matching key
-        for (Pair pair : bucket) {
-            if (pair.key.equals(key)) {
-                return (String) pair.value;
-            }
-        }
-
-        // If there is no matching key, return INVALID
-        return INVALID;
+        return bucket.get(key);
     }
 
     private int calculateHash(String input) {
@@ -90,6 +78,31 @@ public class Finder {
         }
 
         return (int) hashCode;
+    }
+
+    private static class Bucket {
+        public ArrayList<Pair> pairs;
+
+        public Bucket() {
+            pairs = new ArrayList<>();
+        }
+
+        public void add(Pair pair) {
+            pairs.add(pair);
+        }
+
+        public String get(String key) {
+            if (pairs.size() == 1) {
+                return pairs.getFirst().value;
+            } else {
+                for (Pair pair : pairs) {
+                    if (pair.key.equals(key)) {
+                        return pair.value;
+                    }
+                }
+                return INVALID;
+            }
+        }
     }
 
     private static class Pair {
