@@ -71,9 +71,6 @@ public class Finder {
         Pair[] oldHashMap = hashMap;
         hashMap = new Pair[currentSize];
 
-        // Log change
-        System.out.println("Rebuilding table to size " + currentSize);
-
         for (Pair pair : oldHashMap) {
             if (pair != null) {
                 insert(pair);
@@ -91,7 +88,7 @@ public class Finder {
         int hash = calculateHash(key);
 
         // Insert the key and value
-        insert(new Pair(key, value, hash));
+        insert(new Pair(key, value));
 
         // Increase slots used
         slotsUsed++;
@@ -101,7 +98,7 @@ public class Finder {
         // Linear Probing
         for (int i = 0; i < currentSize; i++) {
             // Calculate index (and prevent overflow)
-            int index = (pair.hash + i) % currentSize;
+            int index = (calculateHash(pair.key) + i) % (currentSize - 1);
 
             // Check for empty slot
             if (hashMap[index] == null) {
@@ -127,5 +124,5 @@ public class Finder {
         return (int) hashCode;
     }
 
-    private record Pair(String key, String value, int hash) {} // Had 0 clue this existed, but IntelliJ suggested it!
+    private record Pair(String key, String value) {} // Had 0 clue this existed, but IntelliJ suggested it!
 }
