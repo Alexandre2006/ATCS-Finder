@@ -15,7 +15,8 @@ public class Finder {
 
     // Configuration (for testing)
     private static final double MAX_LOAD = 0.50;
-    private static final int STARTING_SIZE = 8388608; // 2^23 - Seems to timeout with anything lower :(
+    private static final int STARTING_SIZE = 2; // 2^23 - Seems to timeout with anything lower :(
+    private static final int RADIX = 15;
 
     private Pair[] hashMap;
     int currentSize;
@@ -123,7 +124,7 @@ public class Finder {
 
         // Loop over bytes
         for (byte b : bytes) {
-            hashCode = (hashCode * 128 + b) % (currentSize - 1);
+            hashCode = (hashCode * RADIX + b) % (currentSize - 1);
         }
 
         if (hashCode < 0) {
