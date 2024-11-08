@@ -16,7 +16,7 @@ public class Finder {
     int slotsUsed = 0;
 
     private static final String INVALID = "INVALID KEY";
-    private String[] hashMap = new String[currentSize];
+    private Pair[] hashMap = new Pair[currentSize];
 
     public Finder() {}
 
@@ -39,7 +39,7 @@ public class Finder {
             boolean foundLocation = false;
             while (!foundLocation) {
                 if (hashMap[hash] == null) {
-                    hashMap[hash] = value;
+                    hashMap[hash] = new Pair(key, value);
                     foundLocation = true;
                     slotsUsed++;
                 } else {
@@ -69,15 +69,20 @@ public class Finder {
         while (true) {
             if (hashMap[hash] == null) {
                 return INVALID;
-            } else if (hashMap[hash].equals(key)) {
-                return hashMap[hash];
+            } else if (hashMap[hash].key.equals(key)) {
+                return hashMap[hash].value;
             } else {
                 // Increment hash
                 hash++;
 
                 // Make sure hash is not greater than length of hashMap
                 if (hash >= currentSize) {
-                    currentSize = 0;
+                    hash = 0;
+                }
+
+                // If we have looped over all elements
+                if (hash == initialHash) {
+                    return INVALID;
                 }
             }
         }
@@ -85,12 +90,12 @@ public class Finder {
 
     private void rebuildTable() {
         currentSize = currentSize << 1;
-        String[] newHashMap = new String[currentSize];
+        Pair[] newHashMap = new Pair[currentSize];
 
         // Loop over existing elements
         for (int i = 0; i < hashMap.length; i++) {
             if (hashMap[i] != null) {
-                int hash = calculateHash(hashMap[i]);
+                int hash = calculateHash(hashMap[i].key);
 
                 // Add to map
                 boolean foundLocation = false;
@@ -113,8 +118,6 @@ public class Finder {
 
         // Apply new HashMap
         hashMap = newHashMap;
-
-
     }
 
     private int calculateHash(String input) {
@@ -126,6 +129,20 @@ public class Finder {
             hashCode = (hashCode * 128 + b) % (currentSize - 1);
         }
 
+        if (hashCode < 0) {
+            hashCode *= -1;
+        }
+
         return (int) hashCode;
+    }
+
+    private static class Pair {
+        String key;
+        String value;
+
+        public Pair(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
     }
 }
