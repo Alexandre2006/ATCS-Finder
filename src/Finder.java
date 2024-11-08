@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * Finder
@@ -12,51 +11,32 @@ import java.util.ArrayList;
  **/
 
 public class Finder {
-    int currentSize = 2;
-    int slotsUsed = 0;
-
     private static final String INVALID = "INVALID KEY";
-    private Pair[] hashMap = new Pair[currentSize];
 
-    public Finder() {}
+    // Configuration (for testing)
+    private static final double MAX_LOAD = 0.50;
+    private static final int STARTING_SIZE = 2097152;
+
+    private Pair[] hashMap;
+    int currentSize;
+    int slotsUsed;
+
+    public Finder() {
+        currentSize = STARTING_SIZE;
+        hashMap = new Pair[currentSize];
+        slotsUsed = 0;
+    }
 
     public void buildTable(BufferedReader br, int keyCol, int valCol) throws IOException {
-
         // Read the file, line by line
         String line;
+
         while ((line = br.readLine()) != null) {
-            // Split the line into columns
-            String[] columns = line.split(",");
+            // Split the line by commas (CSV)
+            String[] parts = line.split(",");
 
-            // Get the key and the value columns
-            String key = columns[keyCol];
-            String value = columns[valCol];
-
-            // Calculate the hash of the key
-            int hash = calculateHash(key);
-
-            // Add value to hashMap
-            boolean foundLocation = false;
-            while (!foundLocation) {
-                if (hashMap[hash] == null) {
-                    hashMap[hash] = new Pair(key, value);
-                    foundLocation = true;
-                    slotsUsed++;
-                } else {
-                    // Increment hash
-                    hash++;
-
-                    // Make sure hash is not greater than length of hashMap
-                    if (hash >= currentSize) {
-                        hash = 0;
-                    }
-                }
-            }
-
-            // Check usage
-            if ((double) slotsUsed / currentSize >= 0.50) {
-                rebuildTable();
-            }
+            // Insert into the hash table
+            insert(parts[keyCol], parts[valCol]);
         }
         br.close();
     }
@@ -64,60 +44,63 @@ public class Finder {
     public String query(String key){
         // Calculate the hash of the key
         int hash = calculateHash(key);
-        int initialHash = hash;
+        int index = hash;
 
-        while (true) {
-            if (hashMap[hash] == null) {
+        // Linear Probing
+        for (int i = 0; i < currentSize; i++) {
+            // Calculate index (and prevent overflow)
+            index = (hash + i) % currentSize;
+
+            // Check for empty slot
+            if (hashMap[index] == null) {
                 return INVALID;
-            } else if (hashMap[hash].key.equals(key)) {
-                return hashMap[hash].value;
-            } else {
-                // Increment hash
-                hash++;
+            }
 
-                // Make sure hash is not greater than length of hashMap
-                if (hash >= currentSize) {
-                    hash = 0;
-                }
-
-                // If we have looped over all elements
-                if (hash == initialHash) {
-                    return INVALID;
-                }
+            // Check for matching key
+            if (hashMap[index].key.equals(key)) {
+                return hashMap[index].value;
             }
         }
+
+        // Return invalid key if not found
+        return INVALID;
     }
 
     private void rebuildTable() {
         currentSize = currentSize << 1;
-        Pair[] newHashMap = new Pair[currentSize];
+        Pair[] oldHashMap = hashMap;
+        hashMap = new Pair[currentSize];
 
-        // Loop over existing elements
-        for (int i = 0; i < hashMap.length; i++) {
-            if (hashMap[i] != null) {
-                int hash = calculateHash(hashMap[i].key);
+        // Log change
+        System.out.println("Rebuilding table to size " + currentSize);
 
-                // Add to map
-                boolean foundLocation = false;
-                while (!foundLocation) {
-                    if (newHashMap[hash] == null) {
-                        newHashMap[hash] = hashMap[i];
-                        foundLocation = true;
-                    } else {
-                        // Increment hash
-                        hash++;
-
-                        // Make sure hash is not greater than length of hashMap
-                        if (hash >= currentSize) {
-                            hash = 0;
-                        }
-                    }
-                }
+        for (Pair pair : oldHashMap) {
+            if (pair != null) {
+                insert(pair.key, pair.value);
             }
         }
+    }
 
-        // Apply new HashMap
-        hashMap = newHashMap;
+    private void insert(String key, String value) {
+        if ((double) slotsUsed / currentSize >= MAX_LOAD) {
+            rebuildTable();
+        }
+
+        // Calculate the hash of the key
+        int hash = calculateHash(key);
+
+        // Linear Probing
+        for (int i = 0; i < currentSize; i++) {
+            // Calculate index (and prevent overflow)
+            int index = (hash + i) % currentSize;
+
+            // Check for empty slot
+            if (hashMap[index] == null) {
+                hashMap[index] = new Pair(key, value);
+                slotsUsed++;
+                return;
+            }
+        }
     }
 
     private int calculateHash(String input) {
@@ -136,13 +119,6 @@ public class Finder {
         return (int) hashCode;
     }
 
-    private static class Pair {
-        String key;
-        String value;
-
-        public Pair(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
+    private record Pair(String key, String value) {
+    } // Had 0 clue this existed, but IntelliJ suggested it!
 }

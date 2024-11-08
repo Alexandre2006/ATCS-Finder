@@ -43,7 +43,7 @@ public class FinderTester {
         try {
             String query = queryReader.readLine();
             while (query != null) {
-                assertEquals(resultReader.readLine(), studentSolution.query(query), "Key mismatch error.");
+                    assertEquals(resultReader.readLine(), studentSolution.query(query), "Key mismatch error.");
                 query = queryReader.readLine();
             }
         } catch (IOException e) {

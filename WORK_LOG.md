@@ -8,6 +8,7 @@ Name: Alexandre Haddad-Delaveau
 | Nov 4  |  13:00-13:15  |                                                                                                                                                  Cleaned up current system. Going to branch to implement linear probing. |
 | Nov 4  |  13:15-13:45  |                                                                                Started working on the linear probing method. Still having issues with it finding items, and the products test is taking WAYYY TOOO LONG. |
 | Nov 7  |  18:50-19:20  |                                                                                                       Got a partially working version. It is however, still very slow and needs to be improved to pass all of the tests. |
+| Nov 7  |  19:20-19:50  |                                                 Reworked almost everything! Literally duplicated file, rewrote everything, and deleted the original. It's a lot faster now, but not fast enough for the full UPC list :( |
 
 
 To add a new row to the table, click into a cell and then hit shift-enter.
