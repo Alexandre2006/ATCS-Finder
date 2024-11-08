@@ -107,7 +107,7 @@ public class Finder {
         // Linear Probing
         for (int i = 0; i < currentSize; i++) {
             // Calculate index (and prevent overflow)
-            int index = (calculateHash(pair.key) + i) % currentSize;
+            int index = (calculateHash(pair.key) + i) % (currentSize - 1);
 
             // Check for empty slot
             if (hashMap[index] == null) {
@@ -123,7 +123,7 @@ public class Finder {
 
         // Loop over bytes
         for (byte b : bytes) {
-            hashCode = (hashCode * 128 + b) % currentSize;
+            hashCode = (hashCode * 128 + b) % (currentSize - 1);
         }
 
         if (hashCode < 0) {
