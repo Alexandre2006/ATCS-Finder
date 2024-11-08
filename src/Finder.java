@@ -71,11 +71,20 @@ public class Finder {
         Pair[] oldHashMap = hashMap;
         hashMap = new Pair[currentSize];
 
+        // Save start time
+        long startTime = System.currentTimeMillis();
+
+        // Log rebuild
+        System.out.println("Rebuilding table to size: " + currentSize);
+
         for (Pair pair : oldHashMap) {
             if (pair != null) {
                 insert(pair);
             }
         }
+
+        // Log time taken
+        System.out.println("Rebuild took: " + (System.currentTimeMillis() - startTime) + "ms");
     }
 
     private void insert(String key, String value) {
@@ -98,7 +107,7 @@ public class Finder {
         // Linear Probing
         for (int i = 0; i < currentSize; i++) {
             // Calculate index (and prevent overflow)
-            int index = (calculateHash(pair.key) + i) % (currentSize - 1);
+            int index = (calculateHash(pair.key) + i) % currentSize;
 
             // Check for empty slot
             if (hashMap[index] == null) {
@@ -114,7 +123,7 @@ public class Finder {
 
         // Loop over bytes
         for (byte b : bytes) {
-            hashCode = (hashCode * 128 + b) % (currentSize - 1);
+            hashCode = (hashCode * 128 + b) % currentSize;
         }
 
         if (hashCode < 0) {
