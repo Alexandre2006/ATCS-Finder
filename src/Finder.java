@@ -15,7 +15,7 @@ public class Finder {
 
     // Configuration (for testing)
     private static final double MAX_LOAD = 0.50;
-    private static final int STARTING_SIZE = 2097152;
+    private static final int STARTING_SIZE = 8388608; // 2^23 - Seems to timeout with anything lower :(
 
     private Pair[] hashMap;
     int currentSize;
@@ -76,12 +76,13 @@ public class Finder {
 
         for (Pair pair : oldHashMap) {
             if (pair != null) {
-                insert(pair.key, pair.value);
+                insert(pair);
             }
         }
     }
 
     private void insert(String key, String value) {
+        // Rebuild if necessary (only needs to be run in this method, not the main insert as we don't need to check when rebuilding)
         if ((double) slotsUsed / currentSize >= MAX_LOAD) {
             rebuildTable();
         }
@@ -89,15 +90,22 @@ public class Finder {
         // Calculate the hash of the key
         int hash = calculateHash(key);
 
+        // Insert the key and value
+        insert(new Pair(key, value, hash));
+
+        // Increase slots used
+        slotsUsed++;
+    }
+
+    private void insert(Pair pair) {
         // Linear Probing
         for (int i = 0; i < currentSize; i++) {
             // Calculate index (and prevent overflow)
-            int index = (hash + i) % currentSize;
+            int index = (pair.hash + i) % currentSize;
 
             // Check for empty slot
             if (hashMap[index] == null) {
-                hashMap[index] = new Pair(key, value);
-                slotsUsed++;
+                hashMap[index] = pair;
                 return;
             }
         }
@@ -119,6 +127,5 @@ public class Finder {
         return (int) hashCode;
     }
 
-    private record Pair(String key, String value) {
-    } // Had 0 clue this existed, but IntelliJ suggested it!
+    private record Pair(String key, String value, int hash) {} // Had 0 clue this existed, but IntelliJ suggested it!
 }
